@@ -1,14 +1,15 @@
 from __future__ import print_function
 
 import pandas as pd
+from tqdm import tqdm
 from rdkit import Chem
 from rdkit.Chem import AllChem, MolFromSmiles, MolFromMolBlock, MolToSmarts
-from graph_util import *
+from datasets.graph_util import *
 
 np.random.seed(123)
 
 
-def extract_graph(data_path, out_file_path, max_atom_num, label_name=None):
+def extract_graph(data_path, out_file_path, max_atom_num=-1, smiles_column='SMILES', label_name=None):
     import os
     from rdkit import RDConfig
     from rdkit.Chem import ChemicalFeatures
@@ -16,7 +17,7 @@ def extract_graph(data_path, out_file_path, max_atom_num, label_name=None):
     factory = ChemicalFeatures.BuildFeatureFactory(fdefName)
 
     data_pd = pd.read_csv(data_path)
-    smiles_list = data_pd['SMILES'].tolist()
+    smiles_list = data_pd[smiles_column].tolist()
 
     symbol_candidates = set()
     atom_attribute_dim = num_atom_features()
@@ -35,7 +36,12 @@ def extract_graph(data_path, out_file_path, max_atom_num, label_name=None):
     charge_set = set()
     ###
 
-    for line_idx, smiles in enumerate(smiles_list):
+    mol_list = list(map(MolFromSmiles, smiles_list))
+    max_atom_num = max(map(lambda mol: mol.GetNumAtoms(), mol_list)) \
+                   if max_atom_num == -1 else max_atom_num
+    max_degree = max(map(lambda mol: max([atom.GetDegree() for atom in mol.GetAtoms()]), mol_list))
+
+    for line_idx, smiles in enumerate(tqdm(smiles_list)):
         smiles = smiles.strip()
         mol = MolFromSmiles(smiles)
         AllChem.Compute2DCoords(mol)
@@ -109,11 +115,13 @@ def extract_graph(data_path, out_file_path, max_atom_num, label_name=None):
                             node_attribute_matrix_list=node_attribute_matrix_list,
                             bond_attribute_matrix_list=bond_attribute_matrix_list)
     else:
-        true_labels = data_pd[label_name].tolist()
+        true_labels = data_pd[label_name].values.tolist()
         true_labels = np.array(true_labels)
         valid_index = np.array(valid_index)
         true_labels = true_labels[valid_index]
         np.savez_compressed(out_file_path,
+                            max_atom_num=max_atom_num,
+                            max_degree=max_degree,
                             adjacent_matrix_list=adjacent_matrix_list,
                             distance_matrix_list=distance_matrix_list,
                             node_attribute_matrix_list=node_attribute_matrix_list,

@@ -57,7 +57,7 @@ def output_classification_result(y_train, y_pred_on_train,
         print('test roc: {}'.format(roc_auc_single(y_pred_on_test, y_test)))
         print()
 
-    return
+    return roc_auc_single(y_pred_on_test, y_test)
 
 
 def output_regression_result(y_train, y_pred_on_train,

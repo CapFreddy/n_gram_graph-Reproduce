@@ -4,34 +4,33 @@ import numpy as np
 import pandas as pd
 
 
-def extract_feature_and_label_npy(data_file_list, feature_name, label_name_list, n_gram_num):
+def extract_feature_and_label_npy(data_file, feature_name, label_index, n_gram_num):
     X_data = []
     y_data = []
-    for data_file in data_file_list:
-        data = np.load(data_file)
-        X_data_temp = data[feature_name]
-        if X_data_temp.ndim == 4:
-            print('original size\t', X_data_temp.shape)
-            X_data_temp = X_data_temp[:, :n_gram_num, ...]
-            print('truncated size\t', X_data_temp.shape)
 
-            molecule_num, _, embedding_dimension, segmentation_num = X_data_temp.shape
+    data = np.load(data_file)
+    X_data_temp = data[feature_name]
+    if X_data_temp.ndim == 4:
+        print('original size\t', X_data_temp.shape)
+        X_data_temp = X_data_temp[:, :n_gram_num, ...]
+        print('truncated size\t', X_data_temp.shape)
 
-            X_data_temp = X_data_temp.reshape((molecule_num, n_gram_num*embedding_dimension*segmentation_num), order='F')
+        molecule_num, _, embedding_dimension, segmentation_num = X_data_temp.shape
 
-        elif X_data_temp.ndim == 3:
-            print('original size\t', X_data_temp.shape)
-            X_data_temp = X_data_temp[:, :n_gram_num, ...]
-            print('truncated size\t', X_data_temp.shape)
-            molecule_num, _, embedding_dimension = X_data_temp.shape
-            X_data_temp = X_data_temp.reshape((molecule_num, n_gram_num*embedding_dimension), order='F')
+        X_data_temp = X_data_temp.reshape((molecule_num, n_gram_num*embedding_dimension*segmentation_num), order='F')
+
+    elif X_data_temp.ndim == 3:
+        print('original size\t', X_data_temp.shape)
+        X_data_temp = X_data_temp[:, :n_gram_num, ...]
+        print('truncated size\t', X_data_temp.shape)
+        molecule_num, _, embedding_dimension = X_data_temp.shape
+        X_data_temp = X_data_temp.reshape((molecule_num, n_gram_num*embedding_dimension), order='F')
 
 
-        X_data.extend(X_data_temp)
+    X_data.extend(X_data_temp)
 
-        y_data_temp = map(lambda x: data[x], label_name_list)
-        y_data_temp = np.stack(y_data_temp, axis=1)
-        y_data.extend(y_data_temp)
+    y_data_temp = data['label_name'][:, label_index]
+    y_data.extend(y_data_temp)
 
     X_data = np.stack(X_data)
     y_data = np.stack(y_data)

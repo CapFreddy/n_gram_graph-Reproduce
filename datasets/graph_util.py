@@ -19,14 +19,14 @@ possible_hybridization_list = [
 def one_of_k_encoding(x, allowable_set):
     if x not in allowable_set:
         raise Exception("input {0} not in allowable set{1}:".format(x, allowable_set))
-    return map(lambda s: 1 if x == s else 0, allowable_set)
+    return list(map(lambda s: 1 if x == s else 0, allowable_set))
 
 
 def one_of_k_encoding_unk(x, allowable_set):
     if x not in allowable_set:
         logging.info('Unknown detected: {}'.format(x))
         x = allowable_set[-1]
-    return map(lambda s: 1 if x == s else 0, allowable_set)
+    return list(map(lambda s: 1 if x == s else 0, allowable_set))
 
 
 def extract_atom_features(atom, explicit_H=False, is_acceptor=0, is_donor=0):

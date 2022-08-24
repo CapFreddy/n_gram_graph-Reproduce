@@ -62,18 +62,18 @@ class RandomForestClassification:
         else:
             y_pred_on_test = None
 
-        output_classification_result(y_train=y_train, y_pred_on_train=y_pred_on_train,
-                                     y_val=None, y_pred_on_val=None,
-                                     y_test=y_test, y_pred_on_test=y_pred_on_test)
-        return
+        test_roc = output_classification_result(y_train=y_train, y_pred_on_train=y_pred_on_train,
+                                                y_val=None, y_pred_on_val=None,
+                                                y_test=y_test, y_pred_on_test=y_pred_on_test)
+        return test_roc
 
     def save_model(self, model, weight_file):
-        from sklearn.externals import joblib
+        import joblib
         joblib.dump(model, weight_file, compress=3)
         return
 
     def load_model(self, weight_file):
-        from sklearn.externals import joblib
+        import joblib
         model = joblib.load(weight_file)
         return model
 
